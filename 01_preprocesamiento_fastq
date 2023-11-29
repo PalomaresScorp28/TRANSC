@@ -94,4 +94,86 @@ paste L1.R1.fastq L2.R1.fastq L3.R1.fastq L4.R1.fastq L1.R2.fastq L2.R2.fastq L3
 sed  -i '1i Lane1.R1 Lane2.R1 Lane3.R1 Lane4.R1 Lane1.R2 Lane2.R2 Lane3.R2 Lane4.R2' registros-seqs.tsv 
 
 
- 
+#################################################################################################################################
+#################################################################################################################################
+
+ #!/bin/bash
+
+#Crear carpeta para descomprimir archivos .zip
+#Extraer archidos de carpeta .zip y mover a carpeta 01_unzipped
+#obtain md5sum for all files
+
+#mkdir secuencias 
+
+#for i in *zip ; do unzip $i -d 01_unzipped/; done
+
+#md5sum *.fastq.gz > md5sums.allfiles.FVP.txt
+
+#diff -u md5sum_allfiles.txt md5sum_allfiles.txt 
+
+##################################################
+#si no vienen en zip solo hay que extraer
+
+mmkdir secuencias 
+
+for i in 2021*; do cp $i/*fastq.gz secuencias/; done
+
+md5sum *.fastq.gz > md5sums.allfiles.FVP.txt
+
+#tip :
+#con este sed puedes quitar las diagonales de un string en un txt:
+sed -r "s/[/]//g" -i md5sum_allfiles.FVP.txt
+
+diff -u md5sum_allfiles.txt md5sum_allfiles.txt 
+
+
+#si todos coinciden lo que sigue es concantenar
+
+
+    #ls -1 # mostrar una sola columna 
+    #ls -1 *R1*.fastq.gz # mostrar una sola columna solo lo que es *R1*.fastq.gz
+    #ls -1 *R1*.fastq.gz | awk -F '_'  #con separador
+    #ls -1 *R1*.fastq.gz | awk -F '_L' '{print $1}' # primera columa dada por separador "_L"
+    
+    
+ls -1 *R1*.fastq.gz | awk -F '_L' '{print $1}' | sed -r 's/["./]+//g'| sort | uniq > ID #ORDENAR SIN REPETIR Y GUARDAR EN ARCHIVO "ID"
+
+#for i in `cat ./ID`;  do echo cat $i"_L001_R1_001.fastq.gz"/ $i"_L002_R1_001.fastq.gz"/  $i"_L003_R1_001.fastq.gz"/ $i"_L004_R1_001.fastq.gz"/ > $i\_R1.fastq.gz; done
+#Eliminar el echo cuando este for funcione y agregar el R2
+
+for i in `cat ./ID`;\
+do cat $i"_L001_R1_001.fastq.gz" $i"_L002_R1_001.fastq.gz" $i"_L003_R1_001.fastq.gz" $i"_L004_R1_001.fastq.gz" > 01_merged/$i\_R1.fastq.gz;\
+cat $i"_L001_R2_001.fastq.gz" $i"_L002_R2_001.fastq.gz" $i"_L003_R2_001.fastq.gz" $i"_L004_R2_001.fastq.gz" > 01_merged/$i\_R2.fastq.gz;\ 
+done
+
+###obtener los md5sum de los archivos merged
+
+md5sum 01_merged/* > md5sum_merged_filesFVP.txt
+
+### obtener el readc count de los archivos unmerged:
+
+#echo $(zcat RL725-mf_S11_L004_R2_001.fastq.gz |wc -l)/4|bc
+#for f in *.fastq.gz; do echo $f; echo $(zcat $f|wc -l)/4|bc ; done > read_count.txt
+
+##pegar lo que sigue en:
+
+touch scriptforcounts.sh
+code scriptforcounts.sh
+
+#!/bin/bash
+
+for f in *R1_001.fastq.gz; do echo $f; done > fastqs1.txt
+for f in *R1_001.fastq.gz; do echo $(zcat $f|wc -l)/4|bc ; done > read1.txt
+paste fastqs1.txt read1.txt readcount_r1.tsv
+
+for f in *R2_001.fastq.gz; do echo $f; done > fastqs2.txt
+for f in *R2_001.fastq.gz; do echo $(zcat $f|wc -l)/4|bc ; done > read2.txt
+paste fastqs2.txt read2.txt readcount_r2.tsv
+
+chmod +x scriptforcounts.sh
+
+./scriptforcounts.sh
+
+#### para ver la calidad de las secuencias merged
+
+for s in 01_merged/*gz ; do fastqc $s -o 02_merged_fastqc -t 64 ; done
