@@ -1,0 +1,39 @@
+
+
+# Luigui
+# Beginning of the script
+for i in $(cat sampleslist.txt) ;
+ do
+  echo trimmomatic-0.36.jar PE -phred33 ../00_rawdata_metatranscriptome/01_merged/$i\_R1.fastq.gz \
+  ../00_rawdata_metatranscriptome/01_merged/$i\_R2.fastq.gz \
+  $i\_paired_R1.fastq.gz \
+  $i\_unpaired_R1.fastq.gz \
+  $i\_paired_R2.fastq.gz \
+  $i\_unpaired_R2.fastq.gz\ 
+  ILLUMINACLIP:/home/luigui/apps/Trimmomatic-0.36/adapters/TruSeq2-PE.fa:2:30:10 \
+  AVGQUAL:20 \
+  & ; done >> script_trimmomatic.sh
+
+
+##EL MIO
+
+$MKDIR $STEP_1
+paired=false
+for f in $INPUT_DIR/*R1*q
+do
+    f2=`echo $f | awk -F "R1" '{print $1 "R2" $2}'`
+    out_path=`echo $f | awk -F "_R1" '{print $1 ".cleaned"}'`
+    if [ -f $f2 ]; then
+      paired=true
+      checked java -jar $TRIMMOMATIC PE -phred33 -threads $threads $f $f2 \
+        $out_path".forward" $out_path".forward_unpaired" $out_path".reverse" $out_path".reverse_unpaired" \
+         ILLUMINACLIP:$TRIMMOMATIC/adapters/TruSeq2-PE.fa:2:30:10 MINLEN:75 AVGQUAL:20
+    else
+      checked java -jar $TRIMMOMATIC SE -phred33 -threads $threads $f $out_path ILLUMINACLIP:$TRIMMOMATIC/adapters/TruSeq2-PE.fa:2:30:10 \
+      MINLEN:75 AVGQUAL:2
+    fi
+done
+
+#######
+
+
