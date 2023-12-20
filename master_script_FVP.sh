@@ -104,7 +104,9 @@ fi
 ####################################################################
 #
 # STEP 2: MERGING OF PAIRED-END FILES USING PEAR
-
+# Note: paired-end files are usually named using R1 and R2 in the name.
+#       Example: control_1.R1.fastq
+#                control_1.R2.fastq
 
 Step=$(grep "MERGING" $INPUT_DIR/checkpoints)
 if [ "${Step}" != "MERGING" ]

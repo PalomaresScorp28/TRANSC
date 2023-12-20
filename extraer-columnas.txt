@@ -1,0 +1,19 @@
+#extract columns of txt
+cut -f2 raw_counts.txt > filtradodecalidad.txt          
+
+#How do I insert a line at the top of a text file using the command line?
+sed -i -e '1iTrimmomatic QC\' filtradodecalidad.txt
+
+#1i tells sed to insert the text that follows at line 1 of the file; don't forget the \ newline at the end so that the existing line 1 is moved to line 2.
+
+mv sampleslistsFVP.txt  samplesFVP.txt
+sed -i -e '1iIDs\' samplesFVP.txt
+
+cut -f2 pretreatment_17112021.txt > pretreatment.txt
+
+#How do I replace a string in a file in Linux?
+#The procedure to change the text in files under Linux/Unix using sed:
+#Use Stream EDitor (sed) as follows:
+sed -i 's/old-text/new-text/g' input.txt
+
+
